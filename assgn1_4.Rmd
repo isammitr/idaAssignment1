@@ -1,0 +1,152 @@
+---
+title: "IDA Assignment 1 Question 4"
+author: "S2115826"
+---
+
+```{r}
+load('databp.Rdata')
+# complete case analysis
+ind <- which(is.na(databp$recovtime) == FALSE)
+# calculate mean  
+mccoverall <- mean(databp$recovtime, na.rm = TRUE)
+# calculate standard error calculate
+seccoverall <- sd(databp$recovtime, na.rm = TRUE)/sqrt(length(ind))
+mccoverall; seccoverall
+
+```
+
+```{r}
+# pearson correlation coefficient
+cor(databp$recovtime, databp$logdose, use="complete.obs", method="pearson")
+cor(databp$recovtime, databp$bloodp, use="complete.obs", method="pearson")
+
+```
+
+```{r}
+
+# mean imputation
+rtmi <- ifelse(is.na(databp$recovtime) == TRUE, 
+                 mean(databp$recovtime, na.rm = TRUE), databp$recovtime)
+# mean
+mmi <- mean(rtmi)
+n <- nrow(databp)
+# error
+semi <- sd(rtmi)/sqrt(n)
+mmi; semi
+# correlations
+cor(rtmi, databp$logdose, method="pearson")
+cor(rtmi, databp$bloodp, method="pearson")
+```
+
+
+```{r}
+# regression imputation
+fitrt <- lm(recovtime ~ logdose + bloodp, data = databp)
+summary(fitrt)
+predrt <- predict(fitrt,newdata=databp)
+rtri <- ifelse(is.na(databp$recovtime) == TRUE, predrt, databp$recovtime)
+# mean
+mri <- mean(rtri)
+# error
+seri <- sd(rtri)/sqrt(n)
+mri; seri 
+# correlations
+cor(rtri, databp$logdose, method="pearson")
+cor(rtri, databp$bloodp, method="pearson")
+```
+
+
+```{r}
+# stochastic regression imputation
+set.seed(1)
+predsri <- predict(fitrt, newdata = databp) + rnorm(n, 0, summary(fitrt)$sigma)
+rtsri <- ifelse(is.na(databp$recovtime) == TRUE, predsri, databp$recovtime)
+# mean
+msri <- mean(rtsri)
+# error
+sesri <- sd(rtsri)/sqrt(n)
+msri; sesri
+# correlations
+cor(rtsri, databp$logdose, method="pearson")
+cor(rtsri, databp$bloodp, method="pearson")
+
+```
+
+
+```{r}
+# 
+# install.packages("mice") 
+# load package
+library("mice")                                 
+
+# impute missing values
+imp_single <- mice(databp, m = 1, method = "pmm", seed = 1, data.init = databp,
+                   maxit = 1) 
+
+# store imputed data
+data_imp_single <- complete(imp_single) 
+# mean
+mpmm <- mean(data_imp_single$recovtime)
+# error
+sepmm <- sd(data_imp_single$recovtime)/sqrt(n)
+mpmm; sepmm
+# correlations
+cor(data_imp_single$recovtime, databp$logdose, method="pearson")
+cor(data_imp_single$recovtime, databp$bloodp, method="pearson")
+```
+
+
+
+```{r}
+# play area - trying to create own function for predictive mean matching
+
+fitpmm <- lm(recovtime ~ logdose + bloodp, data = databp)
+# summary(fitrt)
+predpmm <- predict(fitpmm, newdata=databp)
+predpmm
+# predrt
+# rtpmm <- ifelse(is.na(databp$recovtime) == TRUE, predpmm, databp$recovtime)
+predpmm[4]
+predpmm[10]
+predpmm[22]
+all_mse2 <- list()
+temp_min<-0
+for (val in databp$recovtime) {
+  if(is.na(val)) next
+  print(val)
+  
+  temp1 <- (predpmm[4]-val)^2
+  temp
+#  if(temp1) 
+    #list.append(MSE(predpmm[4], val))
+  #all_mse2 <- c(all_mse2, (predpmm[4]-val)^2)
+}
+
+all_mse2
+Reduce(min, all_mse2)
+
+which(is.na(databp$recovtime))
+# indexes 4, 10, 22 have missing values
+databp$recovtime
+mri <- mean(rtri)
+seri <- sd(rtri)/sqrt(n)
+mri; seri
+#cor(rtri, databp$logdose, method="pearson")
+# cor(rtri, databp$bloodp, method="pearson")
+
+```
+
+
+```{r}
+preds <- c(1.0, 2.0, 9.5)
+actuals <- c(0.9, 2.1, 10.0)
+mse(preds, actuals)
+
+```
+
+
+
+
+
+
+

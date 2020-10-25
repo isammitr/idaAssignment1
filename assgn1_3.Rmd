@@ -1,0 +1,112 @@
+---
+title: "IDA Assignment 1 Question 3"
+author: "S2115826"
+---
+```{r}
+
+n <- 500
+
+#simulating the data using the univariate normal distribution
+set.seed(1)
+Z1 <- rnorm(n = n, mean = 0, sd = 1)
+Z2 <- rnorm(n = n, mean = 0, sd = 1)
+Z3 <- rnorm(n = n, mean = 0, sd = 1)
+```
+
+
+
+```{r}
+# given conditions
+Y1 <- 1+Z1
+Y2 <- 5+2 * Z1+Z2
+```
+
+
+```{r}
+# imposing missingness - 3a
+a <- 2; b <- 0
+r_mar <- a*(Y1-1) + b*(Y2-5) + Z3
+ind_mar <- which(r_mar > 0)
+Y2_MAR_obs <- Y2[ind_mar]
+Y2_MAR_mis <- Y2[-ind_mar]
+```
+
+
+```{r}
+# plotting marginal distribution for Y2 
+
+plot(density(Y2), lwd = 2, col = "blue", xlab = expression(Y[2]),
+main = "MAR", xlim = c(-5, 15), ylim = c(0, 0.25))
+lines(density(Y2_MAR_obs), lwd = 2, col = "red")
+#lines(density(Y2_MAR_mis), lwd = 2, col = "darkgreen")
+legend(9, 0.25, legend = c("Complete data", "Observed data"), 
+       col = c("blue", "red"), lty = c(1,1), lwd = c(2,2), bty ="n")
+```
+
+
+
+```{r}
+# applying stochastic regression imputation - 3b
+
+fit_obs <- lm(Y2_MAR_obs ~ Y1[ind_mar])
+predsri <- predict(fit_obs) + rnorm(n, 0, summary(fit_obs)$sigma)
+
+```
+
+```{r}
+# plotting marginal distribution for Y2
+
+plot(density(Y2), lwd = 2, col = "blue", xlab = expression(Y[2]),
+main = "MAR - Stochastic Regression Imputation", xlim = c(-5, 15), 
+                                                 ylim = c(0, 0.25))
+lines(density(predsri), lwd = 2, col = "red")
+legend(9, 0.25, legend = c("Complete data", "Imputed data"), 
+       col = c("blue", "red"), lty = c(1,1), lwd = c(2,2), bty ="n")
+```
+
+
+```{r}
+# imposing missingness - 3c
+
+a <- 0; b <- 2
+
+r_mcar <- a*(Y1-1) + b*(Y2-5) + Z3
+ind_mcar <- which(r_mcar > 0)
+Y2_MCAR_obs <- Y2[ind_mcar]
+```
+
+
+```{r}
+# plotting marginal distribution for Y2
+
+plot(density(Y2), lwd = 2, col = "blue", xlab = expression(Y[2]),
+main = "MCAR", xlim = c(-5, 15), ylim = c(0, 0.30))
+lines(density(Y2_MCAR_obs), lwd = 2, col = "red")
+# lines(density(Y2_MAR_mis), lwd = 2, col = "darkgreen")
+legend(9, 0.3, legend = c("Complete data", "Observed data"), 
+       col = c("blue", "red"), lty = c(1,1), lwd = c(2,2), bty ="n")
+```
+
+
+```{r}
+# applying stochastic regression imputation - 3d
+
+fit_obs_d <- lm(Y2_MCAR_obs ~ Y1[ind_mcar])
+predsrid <- predict(fit_obs_d) + rnorm(n, 0, summary(fit_obs_d)$sigma)
+
+```
+
+```{r}
+# plotting marginal distribution for Y2
+
+plot(density(Y2), lwd = 2, col = "blue", xlab = expression(Y[2]),
+main = "MCAR - Stochastic Regression Imputation", xlim = c(-5, 15), 
+                                                  ylim = c(0, 0.30))
+lines(density(predsrid), lwd = 2, col = "red")
+# lines(density(Y2_MAR_mis), lwd = 2, col = "darkgreen")
+legend(9, 0.30, legend = c("Complete data", "Completed data"), 
+       col = c("blue", "red"), lty = c(1,1), lwd = c(2,2), bty ="n")
+```
+
+
+
